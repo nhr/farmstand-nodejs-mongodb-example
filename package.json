@@ -1,0 +1,12 @@
+{
+    "name": "FarmstandFinder"
+  , "version": "0.0.1"
+  , "private": true
+  , "dependencies": {
+      "express": ">= 0.0.1"
+    , "stylus":  ">= 0.0.1"
+    , "jade":    ">= 0.0.1"
+    , "mongodb": ">= 0.9.6-7"
+    , "jquery":  ">= 1.6.3"
+  }
+}

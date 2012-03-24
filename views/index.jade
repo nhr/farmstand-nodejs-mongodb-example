@@ -1,0 +1,36 @@
+extends layout
+
+block content
+    h1 Find a Farmer's Market
+    div#main
+        form
+            select(id="state", onchange="locsByState();")
+            input(id="viewtbl", type="button", value="Table View", onclick="showTable();")
+    div#contents
+    div#addloc
+        form
+            table
+                tr
+                    td(style="font-weight: bold") Add a New Stand:
+                    td
+                        input(id="MktName",     type="text")
+                    td
+                        input(id="LocAddSt",    type="text")
+                    td
+                        input(id="LocAddCity",  type="text")
+                    td
+                        select(id="LocAddState")
+                    td
+                        input(id="LocAddZip",   type="text", size="10")
+                    td
+                        input(type="button", onclick="addLoc();", value="Save")
+                tr
+                    td(class="subformns") &nbsp;
+                    td(class="subform") Market
+                    td(class="subform") Street
+                    td(class="subform") City
+                    td(class="subform") State
+                    td(class="subform") ZIP
+                    td(class="subformns") &nbsp;
+            input(id="LocAddCountry", type="hidden", value="USA")
+    div#modaltable

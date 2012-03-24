@@ -1,37 +1,130 @@
 #!/bin/env node
-//  OpenShift sample Node application
 
-var express = require('express');
-var fs      = require('fs');
-
-//  Local cache for static content [fixed and loaded at startup]
-var zcache = { 'index.html': '' };
-zcache['index.html'] = fs.readFileSync('./index.html'); //  Cache index.html
+// Set up app and DB objects
+var express    = require('express');
+var stylus     = require('stylus');
+var fs         = require('fs');
+var FsProvider = require('./farmstand-mongodb.js').FarmstandProvider;
 
 // Create "express" server.
-var app  = express.createServer();
+var express = require("express");
+var app     = express();
+
+// Set up the DB
+var fsProv = new FsProvider(process.env.OPENSHIFT_NOSQL_DB_HOST,
+                            parseInt(process.env.OPENSHIFT_NOSQL_DB_PORT),
+                            process.env.OPENSHIFT_NOSQL_DB_USERNAME,
+                            process.env.OPENSHIFT_NOSQL_DB_PASSWORD);
+
+// Set up the app environment
+app.configure(function(){
+  app.set('views', process.env.OPENSHIFT_REPO_DIR + 'views');
+  app.set('view engine', 'jade');
+  app.set('view options', { pretty: true });
+  app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.cookieParser());
+  app.use(express.session({ secret: 'your secret here' }));
+  app.use(app.router);
+  app.use(stylus.middleware({
+      src:  process.env.OPENSHIFT_REPO_DIR + 'views'  // .styl files are located in `views/stylesheets`
+    , dest: process.env.OPENSHIFT_REPO_DIR + 'public' // .styl resources are compiled `/stylesheets/*.css`
+    , compile: function(str, path) { // optional, but recommended
+	return stylus(str)
+	    .set('filename', path)
+	    .set('warn', true)
+	    .set('compress', true);
+    }
+  }));
+  app.use(express.static(process.env.OPENSHIFT_REPO_DIR + 'public'));
+});
 
 
 /*  =====================================================================  */
 /*  Setup route handlers.  */
 /*  =====================================================================  */
 
-// Handler for GET /health
-app.get('/health', function(req, res){
-    res.send('1');
-});
-
-// Handler for GET /asciimo
-app.get('/asciimo', function(req, res){
-    var link="https://a248.e.akamai.net/assets.github.com/img/d84f00f173afcf3bc81b4fad855e39838b23d8ff/687474703a2f2f696d6775722e636f6d2f6b6d626a422e706e67";
-    res.send("<html><body><img src='" + link + "'></body></html>");
-});
-
 // Handler for GET /
-app.get('/', function(req, res){
-    res.send(zcache['index.html'], {'Content-Type': 'text/html'});
+app.get('/', function(req, res) {
+    res.render('index', { layout: 'layout', title: 'Farmstands' });
 });
 
+// Handler for GET /locations.json
+app.get('/locations.json', function(req, res) {
+    var sType = req.query.t;
+    var qVal  = req.query.q;
+    fsProv.findByState(qVal, function(error, docs) {
+	if (error) {
+	    console.log(error);
+	}
+	else {
+	    res.send(docs);
+	}
+    });
+});
+
+// Handler for POST /locations.json
+app.post('/locations.json', function(req, res) {
+    var newLoc = req.body;
+    fsProv.saveLoc(newLoc, function(error, docs) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            res.send(docs);
+        }
+    });
+});
+
+// Handler for GET /states.json
+app.get('/states.json', function(req, res) {
+    fsProv.allStates( function(error, docs) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            res.send(docs);
+        }
+    });
+});
+
+// Handler for GET /stategeo.json
+app.get('/stategeo.json', function(req, res) {
+    fsProv.allStateGeo( function(error, docs) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            res.send(docs);
+        }
+    });
+});
+
+// Handler for POST /stategeo.json
+app.post('/stategeo.json', function(req, res) {
+    var newGeo = req.body;
+    fsProv.setStateGeo(newGeo, function(error, docs) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            res.send(docs);
+        }
+    });
+});
+
+// Handler for POST /locgeo.json
+app.post('/locgeo.json', function(req, res) {
+    var locGeo      = req.body;
+    fsProv.setLocGeo(locGeo, function(error, docs) {
+        if (error) {
+            console.log(error);
+        }
+        else {
+            res.send(docs);
+        }
+    });
+});
 
 //  Get the environment variables we need.
 var ipaddr  = process.env.OPENSHIFT_INTERNAL_IP;
@@ -65,4 +158,3 @@ app.listen(port, ipaddr, function() {
    console.log('%s: Node server started on %s:%d ...', Date(Date.now() ),
                ipaddr, port);
 });
-

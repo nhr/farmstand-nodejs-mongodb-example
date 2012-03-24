@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    h1= title
+    
+    form#list-form
+      div#main
+        table#list
+          thead
+            tr
+              each hdr in headers
+                th #{hdr}
+          tbody
+            if records && records.length > 0
+              each rec in records
+                tr
+                  each col in rec
+                    td #{col}
+            else
+              tr
+                td(class='list-norecs', colspan= headers.length) There are currently no records of this type.
+        input(type='button', value='Add a new record', onclick="window.location.href='new';")
