@@ -11,7 +11,7 @@ record_count=`/usr/bin/mongo -u $OPENSHIFT_NOSQL_DB_USERNAME -p $OPENSHIFT_NOSQL
 if [ $record_count -gt 0 ]
 then
   # Already have records? Bail out.
-  echo "The database is already instantiated. Exiting."
+  echo "The database is already instantiated. Moving on."
 else
   # Don't have records? Try to add them
   echo "MongoDB: Importing initial location data."

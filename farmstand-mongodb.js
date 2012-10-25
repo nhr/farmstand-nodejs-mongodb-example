@@ -7,7 +7,7 @@ var ObjectID   = require('mongodb').ObjectID;
 
 // Main DB provider object
 FarmstandProvider = function(host, port, user, pass) {
-    this.db = new Db('farmstand', new Server(host, port, { auto_reconnect: true }, {}));
+    this.db = new Db(process.env.OPENSHIFT_APP_NAME, new Server(host, port, { auto_reconnect: true }, {}));
     this.db.open(function(error, db){
         db.authenticate(user, pass, function(error, result) {});
     });

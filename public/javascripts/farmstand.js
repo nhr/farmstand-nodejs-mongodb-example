@@ -82,9 +82,9 @@ function getGeo() {
     }
 
     // Try to get it from Google
-    GEO.geocode( { 'address': CURR_STATE + ", USA" }, function(results, status) {
+    GEO.geocode( { address: CURR_STATE + ", USA", region: 'US' }, function(results, status) {
 	if (status == google.maps.GeocoderStatus.OK && results.length > 0) {
-	    STATE_GEOS[CURR_STATE] = new stateGeoObj(CURR_STATE, results[0].geometry.location.Xa, results[0].geometry.location.Ya, 7);
+	    STATE_GEOS[CURR_STATE] = new stateGeoObj(CURR_STATE, results[0].geometry.location.lat(), results[0].geometry.location.lng(), 7);
 	    setStateGeo(CURR_STATE); /* Call this async */
 	    setMapView();
 	} else {
@@ -174,13 +174,15 @@ function addLoc() {
     });    
 }
 
-function setLocGeo(locID, locationGeo) {
+function setLocGeo(locID, googleLoc) {
+    var locLat = googleLoc.lat();
+    var locLon = googleLoc.lng()
     $.ajax({
         type:     'POST',
         url:      'locgeo.json',
         dataType: 'json',
         timeout:  5000,
-        data:     { id: locID, lat: locationGeo.Xa, lon: locationGeo.Ya },
+        data:     { id: locID, lat: locLat, lon: locLon },
         success: function(){
         },
         error: function(){
@@ -230,23 +232,22 @@ function gmInitialize() {
     });
 }
 
-function gmAddrLookup(address, name, loc_id) {
-    GEO.geocode( { 'address': address }, function(results, status) {
+function gmAddrLookup(locAddress, locName, locID) {
+    GEO.geocode( { address: locAddress, region: 'US' }, function(results, status) {
 	if (status == google.maps.GeocoderStatus.OK) {
-	    gmLocMarker(name + ': ' + address, results[0].geometry.location.Xa, results[0].geometry.location.Ya);
-	    setLocGeo(loc_id, results[0].geometry.location);
+	    gmLocMarker(locName + ': ' + locAddress, results[0].geometry.location);
+	    setLocGeo(locID, results[0].geometry.location);
 	} else {
             console.log("Geocode was not successful for the following reason: " + status);
 	}
     });
 }
 
-function gmLocMarker(locTitle, locLat, locLon) {
-    var gmMarkerPos = new google.maps.LatLng(locLat, locLon);
-    var newMark     = new google.maps.Marker({
+function gmLocMarker(locTitle, googleLoc) {
+    var newMark = new google.maps.Marker({
 	map:      MAP,
         title:    locTitle,
-	position: gmMarkerPos,
+	position: googleLoc,
     });
     MAP_LOCS.push(newMark);
 }
@@ -266,7 +267,8 @@ function setLocView() {
 	    gmAddrLookup(addr, loc.MktName, loc._id);
 	}
 	else {
-	    gmLocMarker(loc.MktName + ': ' + addr, loc.LocLat, loc.LocLon);
+	    var googleLoc = new google.maps.LatLng(loc.LocLat, loc.LocLon);
+	    gmLocMarker(loc.MktName + ': ' + addr, googleLoc);
 	}
     }
 }
