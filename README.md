@@ -20,7 +20,7 @@ Add MongoDB
 Add this upstream repo
 
     cd <appname>
-    git remote add upstream -m master git://github.com/openshift/farmstand-nodejd-mongodb-example.git
+    git remote add upstream -m master git://github.com/openshift/farmstand-nodejs-mongodb-example.git
     git pull -s recursive -X theirs upstream master
 
 Then push the repo upstream
