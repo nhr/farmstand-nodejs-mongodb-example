@@ -11,10 +11,10 @@ var express = require("express");
 var app     = express();
 
 // Set up the DB
-var fsProv = new FsProvider(process.env.OPENSHIFT_NOSQL_DB_HOST,
-                            parseInt(process.env.OPENSHIFT_NOSQL_DB_PORT),
-                            process.env.OPENSHIFT_NOSQL_DB_USERNAME,
-                            process.env.OPENSHIFT_NOSQL_DB_PASSWORD);
+var fsProv = new FsProvider(process.env.OPENSHIFT_MONGODB_DB_HOST,
+                            parseInt(process.env.OPENSHIFT_MONGODB_DB_PORT),
+                            process.env.OPENSHIFT_MONGODB_DB_USERNAME,
+                            process.env.OPENSHIFT_MONGODB_DB_PASSWORD);
 
 // Set up the app environment
 app.configure(function(){
