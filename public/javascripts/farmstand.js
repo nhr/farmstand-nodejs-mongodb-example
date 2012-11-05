@@ -151,6 +151,27 @@ function addLoc() {
         return;
     }
 
+    // Try to look up the address for the new location
+    var newAddr = makeAddr(newLoc)
+    GEO.geocode( { address: newAddr, region: 'US' }, function(results, status) {
+	if (status == google.maps.GeocoderStatus.OK) {
+	    var googleLoc = results[0].geometry.location;
+	    gmLocMarker(newLoc.MktName + ': ' + newAddr, googleLoc);
+	    newLoc['LocLat'] = googleLoc.lat();
+	    newLoc['LocLon'] = googleLoc.lng();
+	    saveLoc(newLoc);
+	} else {
+            console.log("Geocode was not successful for the following reason: " + status);
+
+	    // Regardless of the outcome, ship this record in to the DB.
+	    // If this addr lookup wasn't successful, we'll try to update
+	    // this record later.
+	    saveLoc(newLoc);
+	}
+    });
+}
+
+function saveLoc(newLoc) {
     $.ajax({
         type:     'POST',
         url:      'locations.json',
@@ -163,30 +184,11 @@ function addLoc() {
 	    $('#LocAddCity').val('');
 	    $('#LocAddZip').val('');
 	    $('#state').val($('#LocAddState').val());
-            locsByState();
+	    locsByState();
 	    alert(newLoc.MktName + ' added successfully.');
         },
         error: function(){
-            alert("Could not save the new farm stand.");
-        },
-        complete: function() {
-        }
-    });    
-}
-
-function setLocGeo(locID, googleLoc) {
-    var locLat = googleLoc.lat();
-    var locLon = googleLoc.lng()
-    $.ajax({
-        type:     'POST',
-        url:      'locgeo.json',
-        dataType: 'json',
-        timeout:  5000,
-        data:     { id: locID, lat: locLat, lon: locLon },
-        success: function(){
-        },
-        error: function(){
-            console.log("Could not save location geo-info for " + locID);
+	    alert("Could not save the new farm stand.");
         },
         complete: function() {
         }
@@ -235,8 +237,28 @@ function gmInitialize() {
 function gmAddrLookup(locAddress, locName, locID) {
     GEO.geocode( { address: locAddress, region: 'US' }, function(results, status) {
 	if (status == google.maps.GeocoderStatus.OK) {
-	    gmLocMarker(locName + ': ' + locAddress, results[0].geometry.location);
-	    setLocGeo(locID, results[0].geometry.location);
+	    var googleLoc = results[0].geometry.location;
+
+	    // Put the marker on the map
+	    gmLocMarker(locName + ': ' + locAddress, googleLoc);
+
+	    // Try to save the new data to the DB
+	    var locLat = googleLoc.lat();
+	    var locLon = googleLoc.lng()
+	    $.ajax({
+		type:     'POST',
+		url:      'locgeo.json',
+		dataType: 'json',
+		timeout:  5000,
+		data:     { id: locID, lat: locLat, lon: locLon },
+		success: function(){
+		},
+		error: function(){
+		    console.log("Could not save location geo-info for " + locID);
+		},
+		complete: function() {
+		}
+	    });
 	} else {
             console.log("Geocode was not successful for the following reason: " + status);
 	}
@@ -259,16 +281,20 @@ function setMapView() {
     MAP.setZoom(parseInt(STATE_GEOS[CURR_STATE].ZoomLevel));
 }
 
+function makeAddr(loc) {
+    return loc.LocAddSt + ', ' + loc.LocAddCity + ', ' + loc.LocAddState + ', ' + loc.LocAddCountry;
+}
+
 function setLocView() {
     for (var idx = 0; idx < LOCS.length; idx++) {
-	var loc  = LOCS[idx];
-	var addr = loc.LocAddSt + ', ' + loc.LocAddCity + ', ' + loc.LocAddState + ', ' + loc.LocAddCountry;
+	var loc = LOCS[idx];
+	var locAddr = makeAddr(loc);
 	if (!loc.hasOwnProperty('LocLat')) {
-	    gmAddrLookup(addr, loc.MktName, loc._id);
+	    gmAddrLookup(locAddr, loc.MktName, loc._id);
 	}
 	else {
 	    var googleLoc = new google.maps.LatLng(loc.LocLat, loc.LocLon);
-	    gmLocMarker(loc.MktName + ': ' + addr, googleLoc);
+	    gmLocMarker(loc.MktName + ': ' + locAddr, googleLoc);
 	}
     }
 }
