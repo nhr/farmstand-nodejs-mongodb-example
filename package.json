@@ -3,10 +3,13 @@
   , "version": "0.0.1"
   , "private": true
   , "dependencies": {
-      "express": ">= 0.0.1"
-    , "stylus":  ">= 0.0.1"
-    , "jade":    ">= 0.0.1"
-    , "mongodb": ">= 0.9.6-7"
-    , "jquery":  ">= 1.6.3"
+      "express": "3.0.x"
+    , "stylus":  "0.29.x"
+    , "jade":    "0.27.x"
+    , "mongodb": "1.1.x"
+    , "jquery":  "1.6.x"
+  },
+    "engines" : {
+	"node": ">= 0.6.19"
   }
 }
