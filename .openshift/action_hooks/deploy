@@ -6,7 +6,7 @@
 
 # Count the number of records in the locations collection.
 # If it doesn't exist, this will return '0'
-record_count=`/usr/bin/mongo -u $OPENSHIFT_NOSQL_DB_USERNAME -p $OPENSHIFT_NOSQL_DB_PASSWORD --host $OPENSHIFT_NOSQL_DB_HOST --port $OPENSHIFT_NOSQL_DB_PORT $OPENSHIFT_APP_NAME --quiet --eval "db.getCollection('locations').count()"`
+record_count=`/usr/bin/mongo -u $OPENSHIFT_MONGODB_DB_USERNAME -p $OPENSHIFT_MONGODB_DB_PASSWORD --host $OPENSHIFT_MONGODB_DB_HOST --port $OPENSHIFT_MONGODB_DB_PORT $OPENSHIFT_APP_NAME --quiet --eval "db.getCollection('locations').count()"`
 
 if [ $record_count -gt 0 ]
 then
@@ -15,10 +15,10 @@ then
 else
   # Don't have records? Try to add them
   echo "MongoDB: Importing initial location data."
-  /usr/bin/mongoimport -u $OPENSHIFT_NOSQL_DB_USERNAME -p $OPENSHIFT_NOSQL_DB_PASSWORD --host $OPENSHIFT_NOSQL_DB_HOST:$OPENSHIFT_NOSQL_DB_PORT -d $OPENSHIFT_APP_NAME -c locations --file $OPENSHIFT_REPO_DIR/data/locations.json
+  /usr/bin/mongoimport -u $OPENSHIFT_MONGODB_DB_USERNAME -p $OPENSHIFT_MONGODB_DB_PASSWORD --host $OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT -d $OPENSHIFT_APP_NAME -c locations --file $OPENSHIFT_REPO_DIR/data/locations.json
   if [ $? != 0 ]
   then
-    echo "An error occurred while importing initial location data. Log into the $OPENSHIFT_APP_NAME shell and manually run '/usr/bin/mongoimport -u $OPENSHIFT_NOSQL_DB_USERNAME -p $OPENSHIFT_NOSQL_DB_PASSWORD --host $OPENSHIFT_NOSQL_DB_HOST:$OPENSHIFT_NOSQL_DB_PORT -d $OPENSHIFT_APP_NAME -c locations --file $OPENSHIFT_REPO_DIR/data/locations.json' to seed the database."
+    echo "An error occurred while importing initial location data. Log into the $OPENSHIFT_APP_NAME shell and manually run '/usr/bin/mongoimport -u $OPENSHIFT_MONGODB_DB_USERNAME -p $OPENSHIFT_MONGODB_DB_PASSWORD --host $OPENSHIFT_MONGODB_DB_HOST:$OPENSHIFT_MONGODB_DB_PORT -d $OPENSHIFT_APP_NAME -c locations --file $OPENSHIFT_REPO_DIR/data/locations.json' to seed the database."
   else
     echo "Import complete."
   fi

@@ -11,33 +11,43 @@ var express = require("express");
 var app     = express();
 
 // Set up the DB
-var fsProv = new FsProvider(process.env.OPENSHIFT_NOSQL_DB_HOST,
-                            parseInt(process.env.OPENSHIFT_NOSQL_DB_PORT),
-                            process.env.OPENSHIFT_NOSQL_DB_USERNAME,
-                            process.env.OPENSHIFT_NOSQL_DB_PASSWORD);
+var fsProv = new FsProvider(process.env.OPENSHIFT_MONGODB_DB_HOST,
+                            parseInt(process.env.OPENSHIFT_MONGODB_DB_PORT),
+                            process.env.OPENSHIFT_MONGODB_DB_USERNAME,
+                            process.env.OPENSHIFT_MONGODB_DB_PASSWORD);
 
 // Set up the app environment
-app.configure(function(){
-  app.set('views', process.env.OPENSHIFT_REPO_DIR + 'views');
-  app.set('view engine', 'jade');
-  app.set('view options', { pretty: true });
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser());
-  app.use(express.session({ secret: 'your secret here' }));
-  app.use(app.router);
-  app.use(stylus.middleware({
-      src:  process.env.OPENSHIFT_REPO_DIR + 'views'  // .styl files are located in `views/stylesheets`
-    , dest: process.env.OPENSHIFT_REPO_DIR + 'public' // .styl resources are compiled `/stylesheets/*.css`
-    , compile: function(str, path) { // optional, but recommended
-	return stylus(str)
-	    .set('filename', path)
-	    .set('warn', true)
-	    .set('compress', true);
-    }
-  }));
-  app.use(express.static(process.env.OPENSHIFT_REPO_DIR + 'public'));
-});
+app.set('views', process.env.OPENSHIFT_REPO_DIR + 'views');
+app.set('view engine', 'jade');
+app.set('view options', { pretty: true });
+
+var bodyParser = require('body-parser');
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded());
+// parse application/json
+app.use(bodyParser.json());
+
+var methodOverride = require('method-override');
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'));
+
+var cookieParser = require('cookie-parser');
+app.use(cookieParser());
+
+var session = require('express-session');
+app.use(session({ secret: 'your secret here' }));
+
+app.use(stylus.middleware({
+  src:  process.env.OPENSHIFT_REPO_DIR + 'views',  // .styl files are located in `views/stylesheets`
+  dest: process.env.OPENSHIFT_REPO_DIR + 'public', // .styl resources are compiled `/stylesheets/*.css`
+  compile: function(str, path) { // optional, but recommended
+return stylus(str)
+    .set('filename', path)
+    .set('warn', true)
+    .set('compress', true);
+  }
+}));
+app.use(express.static(process.env.OPENSHIFT_REPO_DIR + 'public'));
 
 
 /*  =====================================================================  */
@@ -127,11 +137,11 @@ app.post('/locgeo.json', function(req, res) {
 });
 
 //  Get the environment variables we need.
-var ipaddr  = process.env.OPENSHIFT_INTERNAL_IP;
-var port    = process.env.OPENSHIFT_INTERNAL_PORT || 8080;
+var ipaddr  = process.env.OPENSHIFT_NODEJS_IP;
+var port    = process.env.OPENSHIFT_NODEJS_PORT || 8080;
 
 if (typeof ipaddr === "undefined") {
-   console.warn('No OPENSHIFT_INTERNAL_IP environment variable');
+   console.warn('No OPENSHIFT_NODEJS_IP environment variable');
 }
 
 //  terminator === the termination handler.
