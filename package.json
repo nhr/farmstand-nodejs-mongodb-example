@@ -1,15 +1,21 @@
 {
-    "name": "FarmstandFinder"
-  , "version": "0.0.1"
-  , "private": true
-  , "dependencies": {
-      "express": "3.0.x"
-    , "stylus":  "0.29.x"
-    , "jade":    "0.27.x"
-    , "mongodb": "1.1.x"
-    , "jquery":   "1.6.x"
+  "name": "FarmstandFinder",
+  "version": "0.0.1",
+  "private": true,
+
+  "dependencies": {
+    "express": "4.4.4",
+    "body-parser": "> 1.0.0",
+    "method-override": "> 1.0.0",
+    "cookie-parser": "> 1.0.0",
+    "express-session": "> 1.0.0",
+    "stylus":  "0.29.x",
+    "jade":    "0.27.x",
+    "mongodb": "1.1.x",
+    "jquery":  "1.6.x"
   },
-    "engines" : {
-	"node": ">= 0.6.19"
+
+  "engines" : {
+    "node": ">= 0.10.0"
   }
 }
